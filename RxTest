@@ -31,13 +31,13 @@ else;
 	test platform hardware fed switch active port $p phy prbs clear-stats
 	test platform software fed switch 1 sfp port $p program-serdes
 
-	test platform hardware fed switch active port $p phy prbs show-lock-stats | grep -v pattern | grep -v Berr | grep -v Serdes
+	test platform hardware fed switch active port $p phy prbs show-stats
 	echo "Starting $length minute test..."
 
 	for x in `interface | nl | cut -d ":" -f 1 | head $length`; do
 
 	sleep 60
-	test platform hardware fed switch active port $p phy prbs show-lock-stats | grep -v pattern | grep -v Berr | grep -v Serdes
+	test platform hardware fed switch active port $p phy prbs show-stats
 	echo Test has run for $x minute(s).
 	echo ""; echo ""
 
