@@ -1,0 +1,49 @@
+enable
+configure terminal
+service internal
+line con 0
+exec-timeout 0 0    
+exit
+line vty 0 4
+exec-timeout 0 0
+end
+
+term shell
+
+function rxtest() {
+
+p=$1
+
+if $1; then
+	echo ""; echo "You did not specify an interface."
+	echo "Usage: rxtest <interface>"; echo ""
+else;
+
+echo""
+read -p "How long will the test run? (minutes)   " length
+if $length; then
+	echo "You did not enter a time.  Exiting..."; echo ""
+else;
+	test platform hardware fed switch active port $p phy prbs stop prbs-31
+	sleep 5
+	test platform hardware fed switch active port $p phy prbs start prbs-31
+	sleep 5
+	test platform hardware fed switch active port $p phy prbs clear-stats
+	test platform software fed switch 1 sfp port $p program-serdes
+
+	test platform hardware fed switch active port $p phy prbs show-lock-stats | grep -v pattern | grep -v Berr | grep -v Serdes
+	echo "Starting $length minute test..."
+
+	for x in `interface | nl | cut -d ":" -f 1 | head $length`; do
+
+	sleep 60
+	test platform hardware fed switch active port $p phy prbs show-lock-stats | grep -v pattern | grep -v Berr | grep -v Serdes
+	echo Test has run for $x minute(s).
+	echo ""; echo ""
+
+	done
+
+	echo "Test Complete."; echo ""; echo ""
+fi
+fi
+}
