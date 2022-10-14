@@ -10,40 +10,94 @@ end
 
 term shell
 
-function rxtest() {
+function power() {
+	let inter= $p - 8
+	pow=`sh int te1/1/$inter tra | tail 2 | cut -d " " -f 7`
+	echo Rx Power = $pow dBm
+}
 
-p=$1
-
-if $1; then
-	echo ""; echo "You did not specify an interface."
-	echo "Usage: rxtest <interface>"; echo ""
-else;
-
-echo""
-read -p "How long will the test run? (minutes)   " length
-if $length; then
-	echo "You did not enter a time.  Exiting..."; echo ""
-else;
-	test platform hardware fed switch active port $p phy prbs stop prbs-31
-	sleep 5
+function start() {
 	test platform hardware fed switch active port $p phy prbs start prbs-31
-	sleep 5
+}
+
+function stop() {
+	test platform hardware fed switch active port $p phy prbs stop prbs-31
+}
+
+function check() {
+	test platform hardware fed switch active port $p phy prbs show-stats
+}
+
+function clearstat() {
 	test platform hardware fed switch active port $p phy prbs clear-stats
-	test platform software fed switch 1 sfp port $p program-serdes
+}
 
-	test platform hardware fed switch active port $p phy prbs show-stats
+function redo() {
+	stop
+	sleep 5
+	clearstat
+	start
+	sleep 5
+}
+
+function prbstest() {
+if (( $1 && $2 )); then
+	exitbit=0
+	p=$1
+	length=$2
+	clearstat
+	echo " "
+	let err=`check | cut -d "x" -f 2`
+	echo Error count: $err
+	echo " "
 	echo "Starting $length minute test..."
-
-	for x in `interface | nl | cut -d ":" -f 1 | head $length`; do
-
-	sleep 60
-	test platform hardware fed switch active port $p phy prbs show-stats
-	echo Test has run for $x minute(s).
-	echo ""; echo ""
-
+	echo " "
+	for x in `sh int | nl | cut -d":" -f 1 | head $length`; do
+		if [[ $exitbit == 1 ]]; then
+			let placeholdervar=0
+		else;
+			let x=$x
+			let y=$x /2
+			let err=`check | cut -d "x" -f 2`
+			if [[ $x -ge 2 ]]; then
+				for a in 1 2 3 4 5 6; do
+					sleep 10
+					let err=`check | cut -d "x" -f 2`
+					echo " Error Count: $err"
+				done
+				echo " $err Error(s) in $x minutes."
+				if [[ $err -le $y ]]; then
+					echo " "
+				else;
+					echo " "
+					echo "Too many errors :("
+					exitbit=1
+					echo " "
+				fi
+			else;
+				for z in 1 2 3 4 5 6; do
+					sleep 10
+					let err=`check | cut -d "x" -f 2`
+					echo " Error Count: $err"
+				done
+				echo " $err Error(s) in $x minute."
+				if [[ $err -gt 1 ]]; then
+					echo " "
+					echo "Too many errors :("
+					exitbit=1
+					echo " "
+				fi
+				echo " "
+			fi
+		fi
 	done
-
-	echo "Test Complete."; echo ""; echo ""
-fi
+	power
+	echo " "
+else;
+	echo " "
+	echo "Usage: prbstest <port> <time>"
+	echo " "
 fi
 }
+
+wr
