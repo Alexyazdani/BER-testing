@@ -1,3 +1,4 @@
+
 enable
 configure terminal
 service internal
@@ -11,44 +12,90 @@ end
 term shell
 
 function power() {
-	let inter= $p - 8
-	pow=`sh int te1/1/$inter tra | tail 2 | cut -d " " -f 7`
-	echo Rx Power = $pow dBm
+    if (( $1 )); then
+        p=$1
+        power=`sh int te0/1/$p tra | grep Rx | cut -d "=" -f 2 | cut -d " " -f 2`
+        echo Rx Power: $power dBm
+    else;
+        echo Usage: power <port>
+        echo ""
+    fi
 }
 
 function start() {
-	test platform hardware fed switch active port $p phy prbs start prbs-31
+    if (( $1 )); then
+        p=$1
+        show platform hardware subslot 0/1 module device "test pm prbs $p start 31"
+    else;
+        echo Usage: start <port>
+        echo ""
+    fi
 }
 
 function stop() {
-	test platform hardware fed switch active port $p phy prbs stop prbs-31
+    if (( $1 )); then
+        p=$1
+        show platform hardware subslot 0/1 module device "test pm prbs $p start 0"
+    else;
+        echo Usage: stop <port>
+        echo ""
+    fi
+
 }
 
 function check() {
-	test platform hardware fed switch active port $p phy prbs show-stats
-}
-
-function clearstat() {
-	test platform hardware fed switch active port $p phy prbs clear-stats
+    if (( $1 )); then
+        p=$1
+        show platform hardware subslot 0/1 module device "test pm prbs $p status"
+    else;
+        echo Usage: check <port>
+        echo ""
+    fi
 }
 
 function redo() {
-	stop
-	sleep 5
-	clearstat
-	start
-	sleep 5
+    if (( $1 )); then
+        p=$1
+        stop $p
+        sleep 5
+        start $p
+        sleep 5
+        miscerrs=`check 1 | tail 2 | head 1 | cut -d " " -f 6`
+        echo PRBS restarted
+        echo ""
+    else;
+        echo Usage: redo <port>
+        echo ""
+    fi
 }
+
 
 function prbstest() {
 if (( $1 && $2 )); then
-	exitbit=0
 	p=$1
 	length=$2
-	clearstat
+	redo $p
+	lockstat=`check $p | cut -d " " -f 4 | cut -d "," -f 1 | tail 2 | head 1`
+	echo "Resetting Error Count..."
 	echo " "
-	let err=`check | cut -d "x" -f 2`
-	echo Error count: $err
+	sleep 10
+	lockstat=`check $p | cut -d " " -f 4 | cut -d "," -f 1 | tail 2 | head 1`
+	echo Lock Status: $lockstat
+	errbit=0
+	exitbit=0
+	echo " "
+	let err=`check $p | tail 2 | cut -d " " -f 6`
+	if [[ $err -lt 0 ]]; then
+		let err = 0 - $err
+	fi
+	if [[ $errbit -lt 0 ]]; then
+		let errbit = 0 - $errbit
+	fi
+	let errbit= $errbit + $err
+	echo Error Count: $errbit
+	if [[ $errbit -gt 1 ]]; then
+		exitbit=1
+	fi
 	echo " "
 	echo "Starting $length minute test..."
 	echo " "
@@ -58,15 +105,21 @@ if (( $1 && $2 )); then
 		else;
 			let x=$x
 			let y=$x /2
-			let err=`check | cut -d "x" -f 2`
 			if [[ $x -ge 2 ]]; then
 				for a in 1 2 3 4 5 6; do
 					sleep 10
-					let err=`check | cut -d "x" -f 2`
-					echo " Error Count: $err"
+					let err=`check $p | tail 2 | cut -d " " -f 6`
+					if [[ $err -lt 0 ]]; then
+						let err = 0 - $err
+					fi
+					if [[ $errbit -lt 0 ]]; then
+						let errbit = 0 - $errbit
+					fi
+					let errbit= $errbit + $err
+					echo Error count: $errbit
 				done
-				echo " $err Error(s) in $x minutes."
-				if [[ $err -le $y ]]; then
+				echo " $errbit Error(s) in $x minutes."
+				if [[ $errbit -le $y ]]; then
 					echo " "
 				else;
 					echo " "
@@ -77,11 +130,18 @@ if (( $1 && $2 )); then
 			else;
 				for z in 1 2 3 4 5 6; do
 					sleep 10
-					let err=`check | cut -d "x" -f 2`
-					echo " Error Count: $err"
+					let err=`check $p | tail 2 | cut -d " " -f 6`
+						if [[ $err -lt 0 ]]; then
+							let err = 0 - $err
+						fi
+						if [[ $errbit -lt 0 ]]; then
+							let errbit = 0 - $errbit
+						fi
+					let errbit= $errbit + $err
+					echo Error count: $errbit
 				done
-				echo " $err Error(s) in $x minute."
-				if [[ $err -gt 1 ]]; then
+				echo " $errbit Error(s) in $x minute."
+				if [[ $errbit -gt 1 ]]; then
 					echo " "
 					echo "Too many errors :("
 					exitbit=1
@@ -91,7 +151,9 @@ if (( $1 && $2 )); then
 			fi
 		fi
 	done
-	power
+	power $p
+	lockstat=`check $p | cut -d " " -f 4 | cut -d "," -f 1 | tail 2 | head 1`
+	echo Lock Status: $lockstat
 	echo " "
 else;
 	echo " "
@@ -99,5 +161,6 @@ else;
 	echo " "
 fi
 }
+
 
 wr
