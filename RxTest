@@ -69,18 +69,22 @@ function redo() {
     fi
 }
 
+function lockstat() {
+	$p = $1
+	lockstatus=`check $p | cut -d " " -f 4 | cut -d "," -f 1 | tail 2 | head 1`
+	echo Lock Status: $lockstatus
+}
+
 
 function prbstest() {
 if (( $1 && $2 )); then
 	p=$1
 	length=$2
 	redo $p
-	lockstat=`check $p | cut -d " " -f 4 | cut -d "," -f 1 | tail 2 | head 1`
 	echo "Resetting Error Count..."
 	echo " "
 	sleep 10
-	lockstat=`check $p | cut -d " " -f 4 | cut -d "," -f 1 | tail 2 | head 1`
-	echo Lock Status: $lockstat
+	lockstat $p
 	errbit=0
 	exitbit=0
 	echo " "
@@ -152,8 +156,7 @@ if (( $1 && $2 )); then
 		fi
 	done
 	power $p
-	lockstat=`check $p | cut -d " " -f 4 | cut -d "," -f 1 | tail 2 | head 1`
-	echo Lock Status: $lockstat
+	lockstat $p
 	echo " "
 else;
 	echo " "
