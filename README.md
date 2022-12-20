@@ -10,5 +10,7 @@ The first six functions defined will likely need to be changed depending on whic
 The commands at the beginning disable the exec timeout, preventing it from interrupting the test.  Exec timeout can be set by changing the "exec-timeout 0 0" lines to "exec-timeout (minutes) (seconds)"  Also, the "term shell" command allows for guest shell functionality.
 
 The ending "wr" command will commit all changes.
+  
+The current version assumes that the error count clears every time errors are checked, so the variable 'errbit' is used as a counter to keep a running total.  If errors are not cleared on another platform, the prbstest function can be simplified.
 
 Update 10/13/2022:  Function now exits if number of errors is too high.  Useful because the sleep function of the IOS.sh shell does not allow escaping with ctrl-c.  Also will tell user the usage if improper input is given.
