@@ -97,12 +97,8 @@ if (( $1 && $2 )); then
 	if [[ $err -lt 0 ]]; then
 		let err = 0 - $err
 	fi
-	if [[ $errbit -lt 0 ]]; then
-		let errbit = 0 - $errbit
-	fi
-	let errbit= $errbit + $err
-	echo Error Count: $errbit
-	if [[ $errbit -gt 1 ]]; then
+	echo Error Count: $err
+	if [[ $err -gt 1 ]]; then
 		exitbit=1
 	fi
 	echo " "
@@ -172,3 +168,4 @@ fi
 
 
 wr
+
