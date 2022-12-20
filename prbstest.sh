@@ -70,9 +70,14 @@ function redo() {
 }
 
 function lockstat() {
-	$p = $1
-	lockstatus=`check $p | cut -d " " -f 4 | cut -d "," -f 1 | tail 2 | head 1`
-	echo Lock Status: $lockstatus
+	if (( $1 )); then
+		p=$1
+		lockstatus=`check $p | cut -d " " -f 4 | cut -d "," -f 1 | tail 2 | head 1`
+		echo Lock Status: $lockstatus
+	else;
+		echo Usage: lockstat <port>
+		echo ""
+	fi
 }
 
 
