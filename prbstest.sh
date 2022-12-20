@@ -12,61 +12,61 @@ end
 term shell
 
 function power() {
-    if (( $1 )); then
-        p=$1
-        power=`sh int te0/1/$p tra | grep Rx | cut -d "=" -f 2 | cut -d " " -f 2`
-        echo Rx Power: $power dBm
-    else;
-        echo Usage: power <port>
-        echo ""
-    fi
+	if (( $1 )); then
+		p=$1
+		power=`sh int te0/1/$p tra | grep Rx | cut -d "=" -f 2 | cut -d " " -f 2`
+		echo Rx Power: $power dBm
+	else;
+		echo Usage: power <port>
+		echo ""
+	fi
 }
 
 function start() {
-    if (( $1 )); then
-        p=$1
-        show platform hardware subslot 0/1 module device "test pm prbs $p start 31"
-    else;
-        echo Usage: start <port>
-        echo ""
-    fi
+	if (( $1 )); then
+		p=$1
+		show platform hardware subslot 0/1 module device "test pm prbs $p start 31"
+	else;
+		echo Usage: start <port>
+		echo ""
+	fi
 }
 
 function stop() {
-    if (( $1 )); then
-        p=$1
-        show platform hardware subslot 0/1 module device "test pm prbs $p start 0"
-    else;
-        echo Usage: stop <port>
-        echo ""
-    fi
+	if (( $1 )); then
+		p=$1
+		show platform hardware subslot 0/1 module device "test pm prbs $p start 0"
+	else;
+		echo Usage: stop <port>
+		echo ""
+	fi
 
 }
 
 function check() {
-    if (( $1 )); then
-        p=$1
-        show platform hardware subslot 0/1 module device "test pm prbs $p status"
-    else;
-        echo Usage: check <port>
-        echo ""
-    fi
+	if (( $1 )); then
+		p=$1
+		show platform hardware subslot 0/1 module device "test pm prbs $p status"
+	else;
+		echo Usage: check <port>
+		echo ""
+	fi
 }
 
 function redo() {
-    if (( $1 )); then
-        p=$1
-        stop $p
-        sleep 5
-        start $p
-        sleep 5
-        miscerrs=`check 1 | tail 2 | head 1 | cut -d " " -f 6`
-        echo PRBS restarted
-        echo ""
-    else;
-        echo Usage: redo <port>
-        echo ""
-    fi
+	if (( $1 )); then
+		p=$1
+		stop $p
+		sleep 5
+		start $p
+		sleep 5
+		miscerrs=`check 1 | tail 2 | head 1 | cut -d " " -f 6`
+		echo PRBS restarted
+		echo ""
+	else;
+		echo Usage: redo <port>
+		echo ""
+	fi
 }
 
 function lockstat() {
