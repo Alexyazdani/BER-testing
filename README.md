@@ -1,5 +1,5 @@
 # BER-testing, by Alex Yazdani
-Cisco secure shell script to test BER of a setup of an optical port.   Will work for any IOS-XE devices, unless prbs commands require attaching to a location or dropping into a shell. 
+Cisco IOS shell script to test BER of a setup of an optical port.   Will work for any IOS-XE devices, unless prbs commands require attaching to a location or dropping into a shell. 
 
 To use this to measure BER, simply copy and paste the code in full into the Cisco CLI.  The Rx of the module under test must be receiving a PRBS-31 signal.  
 
@@ -14,3 +14,5 @@ The ending "wr" command will commit all changes.
 The current version assumes that the error count clears every time errors are checked, so the variable 'errbit' is used as a counter to keep a running total.  If errors are not cleared on another platform, the prbstest function can be simplified.
 
 Update 10/13/2022:  Function now exits if number of errors is too high.  Useful because the sleep function of the IOS.sh shell does not allow escaping with ctrl-c.  Also will tell user the usage if improper input is given.
+
+Official Documentation: https://www.cisco.com/c/en/us/td/docs/ios/netmgmt/configuration/guide/Convert/IOS_Shell/nm_ios_shell.html
